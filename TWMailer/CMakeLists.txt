@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 2.8)
+project(twmailer)
+
+# specify the C++ standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+#########
+# Files #
+#########
+
+# Declare include files
+include_directories(
+  include
+)
+
+# Declare src files
+file(GLOB SOURCES "src/**/*.cpp")
+
+add_executable(server src/server.cpp)
+add_executable(client src/client.cpp)
