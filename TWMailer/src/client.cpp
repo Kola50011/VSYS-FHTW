@@ -36,7 +36,9 @@ int main(int argc, char const *argv[])
 {
     auto socket_file_descriptor = connect("127.0.0.1", 8080);
 
-    std::string text = "Hello World!";
+    std::string text =
+        "SEND\nif19b001\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n";
+
     if (write(socket_file_descriptor, text.c_str(), strlen(text.c_str()) + 1) < 0)
     {
         spdlog::error("Could not send string {} to server!", text);

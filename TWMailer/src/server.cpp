@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "spdlog/spdlog.h"
+#include "CommandProcessor.h"
 
 #define BUFFER_SIZE 1024
 
@@ -62,12 +63,14 @@ int main(int argc, char const *argv[])
     struct sockaddr_in client_socket_address;
     socklen_t client_socket_address_size;
 
+    CommandProcessor commandProcessor{};
     while (true)
     {
         auto client_socket_descriptor = accept(socket_file_descriptor, (struct sockaddr *)&client_socket_address, &client_socket_address_size);
 
         std::string wholeText = readAll(client_socket_descriptor);
         spdlog::info("Read {}", std::string(wholeText));
+        commandProcessor.process(wholeText);
 
         close(client_socket_descriptor);
     }
