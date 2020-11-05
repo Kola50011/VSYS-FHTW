@@ -2,14 +2,13 @@
 
 #include <string>
 
-class Command
+class Request
 {
 protected:
-    Command(){};
+    Request(){};
 
 public:
-    virtual ~Command(){};
+    virtual ~Request(){};
     virtual std::string getKeyword() = 0;
     virtual bool isValid(std::string requestText) = 0;
-    virtual void process(std::string requestText) = 0;
 };

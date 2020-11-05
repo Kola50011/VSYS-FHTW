@@ -2,11 +2,11 @@
 
 #include <string>
 
-#include "StringUtils.h"
-#include "Command.h"
+#include "utils/stringUtils.h"
+#include "requests/authenticatedRequest.h"
 #include "spdlog/spdlog.h"
 
-class SendCommand : public Command
+class SendRequest : public AuthenticatedRequest
 {
 public:
     std::string getKeyword()
@@ -16,19 +16,19 @@ public:
 
     bool hasValidStructure(std::vector<std::string> lines)
     {
-        if (lines.size() < 6)
+        if (lines.size() < 5)
         {
             spdlog::error("SEND command has invalid amount of arguments!");
             return false;
         }
 
-        if (lines.at(1).length() > 8 || lines.at(2).length() > 8)
+        if (lines.at(1).length() > 8)
         {
-            spdlog::error("Sender / receiver name is too long!");
+            spdlog::error("Receiver name is too long!");
             return false;
         }
 
-        if (lines.at(3).length() > 80)
+        if (lines.at(2).length() > 80)
         {
             spdlog::error("Subject is too long!");
             return false;
@@ -54,23 +54,24 @@ public:
         return true;
     }
 
-    void process(std::string requestText)
+    std::string process(std::string requestText, Session &session)
     {
         auto lines = stringUtils::split(requestText, "\n");
 
         // Remove terminator element
         lines.pop_back();
 
-        auto sender = lines.at(1);
-        auto receiver = lines.at(2);
-        auto subject = lines.at(3);
+        auto receiver = lines.at(1);
+        auto subject = lines.at(2);
 
         std::string content;
-        for (size_t i = 4; i < lines.size(); i++)
+        for (size_t i = 3; i < lines.size(); i++)
         {
             content += lines.at(i) + "\n";
         }
 
-        spdlog::info("{} {} {} {}", sender, receiver, subject, content);
+        spdlog::info("SEND Receiver: {} \n Subject: {} \n Content: {}", receiver, subject, content);
+
+        return "OK\n";
     }
 };

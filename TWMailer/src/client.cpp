@@ -6,42 +6,55 @@
 #include <iostream>
 #include <string>
 
+#include <thread>
+#include <chrono>
+
+#include "utils/socketUtils.h"
 #include "spdlog/spdlog.h"
+
+#define BUFFER_SIZE 1024
 
 int connect(const char *address, int port)
 {
-    auto socket_file_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-    if (socket_file_descriptor < 0)
+    auto socketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketFileDescriptor < 0)
     {
         spdlog::error("Could not create socket!");
         exit(EXIT_FAILURE);
     }
 
-    struct sockaddr_in socket_address;
-    memset(&socket_address, 0, sizeof(socket_address));
+    struct sockaddr_in socketAddress;
+    memset(&socketAddress, 0, sizeof(socketAddress));
 
-    socket_address.sin_family = AF_INET;
-    inet_aton(address, &(socket_address.sin_addr));
-    socket_address.sin_port = htons(port);
+    socketAddress.sin_family = AF_INET;
+    inet_aton(address, &(socketAddress.sin_addr));
+    socketAddress.sin_port = htons(port);
 
-    if (connect(socket_file_descriptor, (struct sockaddr *)&socket_address, sizeof(socket_address)) != 0)
+    if (connect(socketFileDescriptor, (struct sockaddr *)&socketAddress, sizeof(socketAddress)) != 0)
     {
-        spdlog::error("Unable to connect to server {}!", inet_ntoa(socket_address.sin_addr));
+        spdlog::error("Unable to connect to server {}!", inet_ntoa(socketAddress.sin_addr));
         exit(EXIT_FAILURE);
     }
-    return socket_file_descriptor;
+    return socketFileDescriptor;
+}
+
+void sendRequest(int socketFileDescriptor, std::string text)
+{
+    socketUtils::writeAll(socketFileDescriptor, text);
 }
 
 int main(int argc, char const *argv[])
 {
-    auto socket_file_descriptor = connect("127.0.0.1", 8080);
+    auto socketFileDescriptor = connect("127.0.0.1", 8080);
 
-    std::string text =
-        "SEND\nif19b001\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n";
+    sendRequest(socketFileDescriptor, "LOL\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    sendRequest(socketFileDescriptor, "SEND\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    sendRequest(socketFileDescriptor, "LOGIN\ntest\npasswort\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    sendRequest(socketFileDescriptor, "SEND\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
 
-    if (write(socket_file_descriptor, text.c_str(), strlen(text.c_str()) + 1) < 0)
-    {
-        spdlog::error("Could not send string {} to server!", text);
-    }
     return EXIT_SUCCESS;
 }
