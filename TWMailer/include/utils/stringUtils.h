@@ -19,4 +19,9 @@ namespace stringUtils
         return ret;
     }
 
+    bool isNumber(std::string text)
+    {
+        return !std::regex_match(text, std::regex("^[0-9]+$"));
+    }
+
 } // namespace stringUtils

@@ -23,8 +23,7 @@ public:
             return false;
         }
 
-        bool non_numberic = !std::regex_match(lines.at(1), std::regex("^[0-9]+$"));
-        if (non_numberic)
+        if (stringUtils::isNumber(lines.at(1)))
         {
             spdlog::error("Mailnumber contains invalid charaters!");
             return false;
