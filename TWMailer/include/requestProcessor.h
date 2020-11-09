@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-#include "spdlog/spdlog.h"
+#include "libraries/spdlog/spdlog.h"
 #include "requests/request.h"
 #include "requests/authenticatedRequest.h"
 #include "requests/sendRequest.h"
@@ -12,6 +12,7 @@
 #include "requests/readRequest.h"
 #include "requests/deleteRequest.h"
 #include "requests/loginRequest.h"
+#include "requests/quitRequest.h"
 #include "session.h"
 #include "response.h"
 
@@ -29,6 +30,7 @@ public:
         addCommand(new ReadRequest());
         addCommand(new DeleteRequest());
         addCommand(new LoginRequest());
+        addCommand(new QuitRequest());
     }
 
     ~RequestProcessor()

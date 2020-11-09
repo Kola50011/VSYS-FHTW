@@ -10,7 +10,7 @@
 #include <chrono>
 
 #include "utils/socketUtils.h"
-#include "spdlog/spdlog.h"
+#include "libraries/spdlog/spdlog.h"
 
 #define BUFFER_SIZE 1024
 
@@ -47,14 +47,23 @@ int main(int argc, char const *argv[])
 {
     auto socketFileDescriptor = connect("127.0.0.1", 8080);
 
-    sendRequest(socketFileDescriptor, "LOL\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    sendRequest(socketFileDescriptor, "SEND\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
     sendRequest(socketFileDescriptor, "LOGIN\ntest\npasswort\n");
     socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
     sendRequest(socketFileDescriptor, "SEND\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
     socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    sendRequest(socketFileDescriptor, "LIST\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    sendRequest(socketFileDescriptor, "QUIT\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+
+    sendRequest(socketFileDescriptor, "LOGIN\nif19b002\npasswort\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    sendRequest(socketFileDescriptor, "LIST\n");
+    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    // sendRequest(socketFileDescriptor, "READ\nc9150128-830c-49aa-ae0f-368ce4af0f91\n");
+    // socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
 
     return EXIT_SUCCESS;
 }
+
+// fc160d47-9576-4643-8c64-cee134dc9078

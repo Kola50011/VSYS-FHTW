@@ -2,9 +2,11 @@
 
 #include <string>
 
+#include "libraries/spdlog/spdlog.h"
 #include "utils/stringUtils.h"
 #include "requests/authenticatedRequest.h"
-#include "spdlog/spdlog.h"
+#include "persistence/mailRepository.h"
+#include "persistence/entities/mail.h"
 
 class SendRequest : public AuthenticatedRequest
 {
@@ -72,6 +74,18 @@ public:
 
         spdlog::info("SEND Receiver: {} \n Subject: {} \n Content: {}", receiver, subject, content);
 
+        saveMail(
+            session.getUsername(),
+            {receiver},
+            subject,
+            content);
+
         return "OK\n";
+    }
+
+    void saveMail(std::string sender, std::set<std::string> receivers, std::string subject, std::string content)
+    {
+        entities::Mail mail{sender, receivers, subject, content};
+        MailRepository::instance().addMail(mail);
     }
 };

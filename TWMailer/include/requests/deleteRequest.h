@@ -4,7 +4,7 @@
 
 #include "utils/stringUtils.h"
 #include "requests/authenticatedRequest.h"
-#include "spdlog/spdlog.h"
+#include "libraries/spdlog/spdlog.h"
 #include <regex>
 
 class DeleteRequest : public AuthenticatedRequest

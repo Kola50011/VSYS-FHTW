@@ -2,7 +2,8 @@
 
 #include <string>
 #include <vector>
-#include "spdlog/spdlog.h"
+#include <regex>
+#include "libraries/spdlog/spdlog.h"
 
 namespace stringUtils
 {

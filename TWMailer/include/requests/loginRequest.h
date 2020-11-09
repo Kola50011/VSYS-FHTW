@@ -4,7 +4,7 @@
 
 #include "utils/stringUtils.h"
 #include "requests/request.h"
-#include "spdlog/spdlog.h"
+#include "libraries/spdlog/spdlog.h"
 #include "session.h"
 #include "response.h"
 

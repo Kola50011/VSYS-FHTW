@@ -2,10 +2,13 @@
 
 #include <string>
 
-#include "utils/stringUtils.h"
+#include "libraries/uuid/uuid.h"
 #include "requests/authenticatedRequest.h"
-#include "spdlog/spdlog.h"
+#include "libraries/spdlog/spdlog.h"
 #include <regex>
+
+#include "persistence/mailRepository.h"
+#include "response.h"
 
 class ReadRequest : public AuthenticatedRequest
 {
@@ -23,9 +26,9 @@ public:
             return false;
         }
 
-        if (stringUtils::isNumber(lines.at(1)))
+        if (uuid::is_uuid(lines.at(1)))
         {
-            spdlog::error("Mailnumber contains invalid charaters!");
+            spdlog::error("Mailnumber is not a valid UUID!");
             return false;
         }
         return true;
@@ -46,11 +49,20 @@ public:
     std::string process(std::string requestText, Session &session)
     {
         auto lines = stringUtils::split(requestText, "\n");
+        auto mailId = lines.at(1);
 
-        auto mail_number = stoi(lines.at(1));
+        spdlog::info("READ Mailnumber: {} ", mailId);
 
-        spdlog::info("READ Mailnumber: {} ", mail_number);
+        auto mailRepository = MailRepository::instance();
+        if (mailRepository.mailExists(mailId))
+        {
+            std::string ret = RESPONSE_OK;
+            auto mail = mailRepository.getMail(mailId);
+            spdlog::info("3");
+            ret += mail.getContent();
+            return ret;
+        }
 
-        return "OK\n";
+        return RESPONSE_ERR;
     }
 };

@@ -2,9 +2,10 @@
 
 #include <string>
 
-#include "utils/stringUtils.h"
+#include "libraries/spdlog/spdlog.h"
+#include "response.h"
 #include "requests/authenticatedRequest.h"
-#include "spdlog/spdlog.h"
+#include "persistence/mailRepository.h"
 
 class ListRequest : public AuthenticatedRequest
 {
@@ -22,6 +23,15 @@ public:
     std::string process(std::string requestText, Session &session)
     {
         spdlog::info("LIST");
-        return "OK\n";
+        auto mails = MailRepository::instance().getMailsForUser(session.getUsername());
+
+        std::string ret = RESPONSE_OK;
+        ret += std::to_string(mails.size()) + "\n";
+        for (auto &mail : mails)
+        {
+            ret += mail.getId() + " " + mail.getSubject() + "\n";
+        }
+
+        return ret;
     }
 };
