@@ -2,10 +2,11 @@
 
 #include <string>
 
-#include "utils/stringUtils.h"
+#include "libraries/uuid/uuid.h"
 #include "requests/authenticatedRequest.h"
+#include "response.h"
+#include "persistence/mailRepository.h"
 #include "libraries/spdlog/spdlog.h"
-#include <regex>
 
 class DeleteRequest : public AuthenticatedRequest
 {
@@ -23,9 +24,9 @@ public:
             return false;
         }
 
-        if (stringUtils::isNumber(lines.at(1)))
+        if (uuid::is_uuid(lines.at(1)))
         {
-            spdlog::error("Mailnumber contains invalid charaters!");
+            spdlog::error("Mailnumber is not a valid UUID!");
             return false;
         }
         return true;
@@ -46,11 +47,25 @@ public:
     std::string process(std::string requestText, Session &session)
     {
         auto lines = stringUtils::split(requestText, "\n");
+        auto mailId = lines.at(1);
 
-        auto mail_number = stoi(lines.at(1));
+        spdlog::info("DEL Mailnumber: {} ", mailId);
 
-        spdlog::info("DEL Mailnumber: {} ", mail_number);
+        auto mailRepository = MailRepository::instance();
+        if (!mailRepository.mailExistsForUser(mailId, session.getUsername()))
+        {
+            return RESPONSE_ERR;
+        }
 
-        return "OK\n";
+        try
+        {
+            mailRepository.deleteMailForUser(mailId, session.getUsername());
+            return RESPONSE_OK;
+        }
+        catch (const std::exception &e)
+        {
+            spdlog::error("Error when deleting mail {} for user {}: {}", mailId, session.getUsername(), e.what());
+        }
+        return RESPONSE_ERR;
     }
 };

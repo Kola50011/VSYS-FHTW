@@ -49,8 +49,8 @@ int main(int argc, char const *argv[])
 
     sendRequest(socketFileDescriptor, "LOGIN\ntest\npasswort\n");
     socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    sendRequest(socketFileDescriptor, "SEND\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    // sendRequest(socketFileDescriptor, "SEND\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
+    // socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
     sendRequest(socketFileDescriptor, "LIST\n");
     socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
     sendRequest(socketFileDescriptor, "QUIT\n");
@@ -60,10 +60,12 @@ int main(int argc, char const *argv[])
     socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
     sendRequest(socketFileDescriptor, "LIST\n");
     socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    // sendRequest(socketFileDescriptor, "DEL\n5665d682-75bb-4236-a7df-9f8cca24791e\n");
+    // socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
     // sendRequest(socketFileDescriptor, "READ\nc9150128-830c-49aa-ae0f-368ce4af0f91\n");
     // socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
 
     return EXIT_SUCCESS;
 }
 
-// fc160d47-9576-4643-8c64-cee134dc9078
+// a138f7ab-3b86-4f7d-82a3-76f909508aff

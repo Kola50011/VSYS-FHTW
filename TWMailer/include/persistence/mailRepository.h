@@ -102,9 +102,20 @@ public:
         }
     }
 
+    void deleteMailForUser(std::string id, std::string user)
+    {
+        std::filesystem::remove(getUserMailPath(user, id));
+    }
+
     bool mailExists(std::string id)
     {
         auto path = getMailPath(id);
+        return std::filesystem::is_regular_file(path);
+    }
+
+    bool mailExistsForUser(std::string id, std::string user)
+    {
+        auto path = getUserMailPath(user, id);
         return std::filesystem::is_regular_file(path);
     }
 

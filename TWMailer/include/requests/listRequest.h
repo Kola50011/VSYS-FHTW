@@ -29,7 +29,10 @@ public:
         ret += std::to_string(mails.size()) + "\n";
         for (auto &mail : mails)
         {
-            ret += mail.getId() + " " + mail.getSubject() + "\n";
+            if (mail.getSender() != session.getUsername())
+            {
+                ret += mail.getId() + " " + mail.getSubject() + "\n";
+            }
         }
 
         return ret;
