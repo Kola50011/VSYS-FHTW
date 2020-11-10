@@ -11,6 +11,7 @@
 #include "utils/socketUtils.h"
 #include "requestProcessor.h"
 #include "session.h"
+#include "persistence/banRepository.h"
 
 #define BUFFER_SIZE 1024
 
@@ -48,11 +49,18 @@ private:
         }
     }
 
-    void handleClient(int socketFileDescriptor, RequestProcessor &requestProcessor)
+    void handleClient(int socketFileDescriptor, RequestProcessor &requestProcessor, std::string ip)
     {
-        spdlog::info("Incoming connection with ID {}", socketFileDescriptor);
+        spdlog::info("Incoming connection with ID {} and IP {}", socketFileDescriptor, ip);
 
-        Session session;
+        if (BanRepository::instance().isBanned(ip))
+        {
+            spdlog::warn("Banned user with IP {} tried to connect. Dropping connection", ip);
+            close(socketFileDescriptor);
+            return;
+        }
+
+        Session session{ip};
         while (socketUtils::isOpen(socketFileDescriptor))
         {
             std::string wholeText = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
@@ -83,9 +91,12 @@ public:
         while (true)
         {
             auto clientSocketDescriptor = accept(socketFileDescriptor, (struct sockaddr *)&clientSocketAddress, &clientSocketAddressSize);
+            struct in_addr ipAddr = clientSocketAddress.sin_addr;
+            char ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &ipAddr, ip, INET_ADDRSTRLEN);
 
             // detach automatically releases all ressources once the thread is finished
-            std::thread(&SocketServer::handleClient, this, clientSocketDescriptor, std::ref(requestProcessor)).detach();
+            std::thread(&SocketServer::handleClient, this, clientSocketDescriptor, std::ref(requestProcessor), ip).detach();
         }
     };
 };

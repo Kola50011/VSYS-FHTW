@@ -7,6 +7,7 @@
 #include "libraries/spdlog/spdlog.h"
 #include "session.h"
 #include "response.h"
+#include "persistence/banRepository.h"
 
 class LoginRequest : public Request
 {
@@ -53,8 +54,13 @@ public:
 
         spdlog::info("LOGIN {}", username);
 
+        if (password != "topSecret")
+        {
+            BanRepository::instance().addFailed(session.getIp());
+            return RESPONSE_ERR;
+        }
         // TODO ADD Ldap Auth
-        session = Session(username);
+        // session = Session(session.getIp(), username);
 
         return RESPONSE_OK;
     }

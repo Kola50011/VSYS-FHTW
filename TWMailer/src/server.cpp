@@ -6,6 +6,7 @@
 
 #include "socketServer.h"
 #include "persistence/mailRepository.h"
+#include "persistence/banRepository.h"
 
 int main(int argc, char const *argv[])
 {
@@ -29,6 +30,7 @@ int main(int argc, char const *argv[])
 
     std::filesystem::path storageFolderPath{storagePath};
     MailRepository::instance().setStorageFolder(storageFolderPath);
+    BanRepository::instance().setStorageFolder(storageFolderPath);
 
     SocketServer socketServer(port);
     spdlog::info("Server started. Listening for connectins.");

@@ -132,9 +132,7 @@ public:
 
         nlohmann::json mailJson;
         std::ifstream fileStream(getMailPath(id));
-        spdlog::info("1");
         fileStream >> mailJson;
-        spdlog::info("2");
         auto ret = mailJson.get<entities::Mail>();
         return ret;
     }
