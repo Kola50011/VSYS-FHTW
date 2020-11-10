@@ -56,11 +56,10 @@ public:
 
         if (LoginRequest *loginRequest = dynamic_cast<LoginRequest *>(request))
         {
-            spdlog::info("instanceof LoginRequest");
             return loginRequest->handleRequest(requestText, session);
         }
 
-        spdlog::error("request is not instanceof!");
+        spdlog::error("Request is neither instance of AuthenticatedRequest or LoginRequest! This should NOT happen!");
         return RESPONSE_ERR;
     }
 
@@ -80,14 +79,14 @@ public:
         {
             auto request = requestMap.at(keyword);
 
-            spdlog::info("Keyword is {}", request->getKeyword());
+            spdlog::debug("Keyword is {}", request->getKeyword());
             if (request->isValid(requestText))
             {
-                spdlog::info("Command is valid");
+                spdlog::debug("Command is valid");
                 return handleRequest(request, requestText, session);
             }
 
-            spdlog::error("Command is invalid");
+            spdlog::error("Command is invalid!\n{}", requestText);
             return RESPONSE_ERR;
         }
         catch (const std::out_of_range &e)

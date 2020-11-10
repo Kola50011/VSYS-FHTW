@@ -25,7 +25,7 @@ namespace socketUtils
             wholeText += std::string(buffer);
         } while (recvLen >= bufferSize - 1);
 
-        spdlog::info("Read {}", std::string(wholeText));
+        spdlog::debug("Read {}", std::string(wholeText));
 
         return wholeText;
     }

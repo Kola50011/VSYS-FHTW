@@ -80,6 +80,10 @@ public:
         std::vector<entities::Mail> ret{};
 
         std::string userPath = getUserPath(name);
+        if (!std::filesystem::is_directory(userPath))
+        {
+            return ret;
+        }
         for (const auto &entry : std::filesystem::directory_iterator(userPath))
         {
             nlohmann::json mailJson;

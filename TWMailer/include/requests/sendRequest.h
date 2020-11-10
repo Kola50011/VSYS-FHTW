@@ -24,10 +24,15 @@ public:
             return false;
         }
 
-        if (lines.at(1).length() > 8)
+        auto receivers = stringUtils::split(lines.at(1), " ");
+        for (auto &receiver : receivers)
         {
-            spdlog::error("Receiver name is too long!");
-            return false;
+            if (receiver.length() > 8)
+            {
+
+                spdlog::error("Receiver name {} is too long!", receiver);
+                return false;
+            }
         }
 
         if (lines.at(2).length() > 80)
@@ -44,7 +49,8 @@ public:
         return true;
     }
 
-    bool isValid(std::string requestText)
+    bool
+    isValid(std::string requestText)
     {
         auto lines = stringUtils::split(requestText, "\n");
 
@@ -58,12 +64,13 @@ public:
 
     std::string process(std::string requestText, Session &session)
     {
+        spdlog::info("SEND");
         auto lines = stringUtils::split(requestText, "\n");
 
         // Remove terminator element
         lines.pop_back();
 
-        auto receiver = lines.at(1);
+        auto receivers = stringUtils::split(lines.at(1), " ");
         auto subject = lines.at(2);
 
         std::string content;
@@ -72,18 +79,16 @@ public:
             content += lines.at(i) + "\n";
         }
 
-        spdlog::info("SEND Receiver: {} \n Subject: {} \n Content: {}", receiver, subject, content);
-
         saveMail(
             session.getUsername(),
-            {receiver},
+            receivers,
             subject,
             content);
 
         return "OK\n";
     }
 
-    void saveMail(std::string sender, std::set<std::string> receivers, std::string subject, std::string content)
+    void saveMail(std::string sender, std::vector<std::string> receivers, std::string subject, std::string content)
     {
         entities::Mail mail{sender, receivers, subject, content};
         MailRepository::instance().addMail(mail);

@@ -25,16 +25,17 @@ public:
         spdlog::info("LIST");
         auto mails = MailRepository::instance().getMailsForUser(session.getUsername());
 
-        std::string ret = RESPONSE_OK;
-        ret += std::to_string(mails.size()) + "\n";
+        std::string mailsString;
+        int mailCount{};
         for (auto &mail : mails)
         {
             if (mail.getSender() != session.getUsername())
             {
-                ret += mail.getId() + " " + mail.getSubject() + "\n";
+                mailCount++;
+                mailsString += mail.getId() + " " + mail.getSubject() + "\n";
             }
         }
 
-        return ret;
+        return RESPONSE_OK + std::to_string(mailCount) + "\n" + mailsString;
     }
 };
