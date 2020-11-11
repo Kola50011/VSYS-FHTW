@@ -2,6 +2,7 @@
 
 #include <experimental/filesystem>
 #include <fstream>
+#include <mutex>
 
 #include "libraries/json/json.hpp"
 #include "persistence/entities/banTableEntry.h"
@@ -17,12 +18,13 @@ class BanRepository
 private:
     std::filesystem::path bansFile;
     std::map<std::string, entities::BanTableEntry> bans;
+    std::mutex fileOpsMutex;
 
     BanRepository(){};
 
     int ageOfTimepoint(std::chrono::system_clock::time_point time)
     {
-        return std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::system_clock::now()).count();
+        return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - time).count();
     }
 
     void save()
@@ -59,17 +61,16 @@ public:
 
     void addFailed(std::string ip)
     {
-        if (bans.find(ip) == bans.end())
-        {
-            bans[ip] = entities::BanTableEntry();
-        }
-        spdlog::debug("SAVE");
-
         if (isBanned(ip))
         {
             return;
         }
-        spdlog::debug("SAVE");
+
+        std::lock_guard<std::mutex> lockGuard(fileOpsMutex);
+        if (bans.find(ip) == bans.end())
+        {
+            bans[ip] = entities::BanTableEntry();
+        }
 
         entities::BanTableEntry &ban = bans[ip];
         if (ageOfTimepoint(ban.getLastInteraction()) > TRY_TIMEOUT)
@@ -78,7 +79,6 @@ public:
         }
         ban.setTries(ban.getTries() + 1);
         ban.updateLastInteraction();
-        spdlog::debug("SAVE");
 
         save();
     }

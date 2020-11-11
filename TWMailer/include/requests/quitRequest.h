@@ -22,7 +22,7 @@ public:
     std::string process(std::string requestText, Session &session)
     {
         spdlog::info("QUIT");
-        session = Session(session.getIp());
+        session.quit();
         return "OK\n";
     }
 };

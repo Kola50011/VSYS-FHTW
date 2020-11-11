@@ -22,13 +22,6 @@ public:
         this->ip = ip;
         authenticated = false;
     }
-
-    Session(std::string ip, std::string username)
-    {
-        this->ip = ip;
-        this->username = username;
-        authenticated = true;
-    }
     ~Session(){};
 
     std::string getUsername()
@@ -44,5 +37,20 @@ public:
     bool isAuthenticated()
     {
         return authenticated;
+    }
+
+    void authenticate()
+    {
+        authenticated = true;
+    }
+
+    void quit()
+    {
+        authenticated = false;
+    }
+
+    void setUsername(std::string username)
+    {
+        this->username = username;
     }
 };

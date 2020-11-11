@@ -59,8 +59,10 @@ public:
             BanRepository::instance().addFailed(session.getIp());
             return RESPONSE_ERR;
         }
+
         // TODO ADD Ldap Auth
-        // session = Session(session.getIp(), username);
+        session.setUsername(username);
+        session.authenticate();
 
         return RESPONSE_OK;
     }
