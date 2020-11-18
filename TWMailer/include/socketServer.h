@@ -85,7 +85,7 @@ public:
     void open()
     {
         struct sockaddr_in clientSocketAddress;
-        socklen_t clientSocketAddressSize;
+        socklen_t clientSocketAddressSize = sizeof(clientSocketAddress);
 
         RequestProcessor requestProcessor{};
         while (true)

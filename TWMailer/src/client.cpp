@@ -45,6 +45,8 @@ void sendRequest(int socketFileDescriptor, std::string text)
 
 int main(int argc, char const *argv[])
 {
+    spdlog::set_level(spdlog::level::debug);
+
     auto socketFileDescriptor = connect("127.0.0.1", 8080);
 
     sendRequest(socketFileDescriptor, "LOGIN\ntest\npasswort\n");

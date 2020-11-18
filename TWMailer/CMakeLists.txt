@@ -17,5 +17,8 @@ include_directories(
 # Declare src files
 file(GLOB SOURCES "src/**/*.cpp")
 
+find_package (Threads)
+
 add_executable(server src/server.cpp)
 add_executable(client src/client.cpp)
+target_link_libraries (server ${CMAKE_THREAD_LIBS_INIT})

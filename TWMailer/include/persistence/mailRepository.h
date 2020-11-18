@@ -87,7 +87,7 @@ public:
         for (const auto &entry : std::filesystem::directory_iterator(userPath))
         {
             nlohmann::json mailJson;
-            std::ifstream fileStream(entry);
+            std::ifstream fileStream(entry.path());
 
             fileStream >> mailJson;
             ret.push_back(mailJson.get<entities::Mail>());
