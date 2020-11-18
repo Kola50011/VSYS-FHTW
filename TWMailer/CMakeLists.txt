@@ -11,14 +11,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Declare include files
 include_directories(
-  include
+        include
 )
 
 # Declare src files
 file(GLOB SOURCES "src/**/*.cpp")
 
-find_package (Threads)
+find_package(Threads)
 
 add_executable(server src/server.cpp)
 add_executable(client src/client.cpp)
-target_link_libraries (server ${CMAKE_THREAD_LIBS_INIT})
+
+target_link_libraries(server ${CMAKE_THREAD_LIBS_INIT} -lldap -llber)

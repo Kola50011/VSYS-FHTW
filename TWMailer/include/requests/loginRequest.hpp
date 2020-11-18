@@ -8,6 +8,7 @@
 #include "session.hpp"
 #include "response.hpp"
 #include "persistence/banRepository.hpp"
+#include "utils/ldapUtils.hpp"
 
 class LoginRequest : public Request {
 public:
