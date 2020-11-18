@@ -4,12 +4,9 @@
 #include "libraries/spdlog/spdlog.h"
 #include "libraries/CLI11/CLI11.hpp"
 
-#include "socketServer.h"
-#include "persistence/mailRepository.h"
-#include "persistence/banRepository.h"
+#include "socketServer.hpp"
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     CLI::App app{"TWMailer Server"};
 
     std::string storagePath{"./storage"};
@@ -23,8 +20,7 @@ int main(int argc, char const *argv[])
 
     CLI11_PARSE(app, argc, argv);
 
-    if (debug)
-    {
+    if (debug) {
         spdlog::set_level(spdlog::level::debug);
     }
 

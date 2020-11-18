@@ -3,34 +3,29 @@
 #include <string>
 
 #include "libraries/spdlog/spdlog.h"
-#include "response.h"
-#include "requests/authenticatedRequest.h"
-#include "persistence/mailRepository.h"
+#include "response.hpp"
+#include "requests/authenticatedRequest.hpp"
+#include "persistence/mailRepository.hpp"
 
-class ListRequest : public AuthenticatedRequest
-{
+class ListRequest : public AuthenticatedRequest {
 public:
-    std::string getKeyword()
-    {
+    std::string getKeyword() override {
         return "LIST";
     }
 
-    bool isValid(std::string requestText)
-    {
+    bool isValid(std::string requestText) override {
         return requestText == "LIST\n";
     }
 
-    std::string process(std::string requestText, Session &session)
-    {
+    std::string process(std::string requestText, Session &session) override {
         spdlog::info("LIST");
         auto mails = MailRepository::instance().getMailsForUser(session.getUsername());
 
         std::string mailsString;
         int mailCount{};
-        for (auto &mail : mails)
-        {
-            if (mail.getSender() != session.getUsername())
-            {
+        for (auto &mail : mails) {
+            if (std::find(mail.getReceivers().begin(), mail.getReceivers().end(), session.getUsername()) !=
+                mail.getReceivers().end()) {
                 mailCount++;
                 mailsString += mail.getId() + " " + mail.getSubject() + "\n";
             }

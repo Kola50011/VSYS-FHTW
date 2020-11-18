@@ -10,36 +10,32 @@
 #include "libraries/json/json.hpp"
 #include "libraries/uuid/uuid.h"
 
-#include "exceptions/fileNotFoundException.h"
-#include "persistence/entities/mail.h"
+#include "exceptions/fileNotFoundException.hpp"
+#include "persistence/entities/mail.hpp"
 
 #define MAILS_FOLDER "/mails"
 #define USERS_FOLDER "/users"
 
-class MailRepository
-{
+class MailRepository {
 private:
-    MailRepository(){};
+    MailRepository() = default;
+
     std::filesystem::path mailFolder;
     std::filesystem::path usersFolder;
 
-    std::filesystem::path getMailPath(std::string id)
-    {
+    std::filesystem::path getMailPath(const std::string &id) {
         return mailFolder.string() + "/" + id + ".json";
     }
 
-    std::filesystem::path getUserPath(std::string user)
-    {
+    std::filesystem::path getUserPath(const std::string &user) {
         return usersFolder.string() + "/" + user;
     }
 
-    std::filesystem::path getUserMailPath(std::string user, std::string id)
-    {
+    std::filesystem::path getUserMailPath(const std::string &user, const std::string &id) {
         return getUserPath(user).string() + "/" + id + ".json";
     }
 
-    std::string saveMail(entities::Mail &mail)
-    {
+    std::string saveMail(entities::Mail &mail) {
         auto uuid = uuid::generate_uuid_v4();
         mail.setId(uuid);
 
@@ -49,8 +45,7 @@ private:
         return uuid;
     }
 
-    void saveMailForUser(std::string id, std::string user)
-    {
+    void saveMailForUser(const std::string &id, const std::string &user) {
         auto source = getUserMailPath(user, id);
         auto target = getMailPath(id);
 
@@ -60,14 +55,12 @@ private:
     }
 
 public:
-    static MailRepository &instance()
-    {
+    static MailRepository &instance() {
         static MailRepository INSTANCE;
         return INSTANCE;
     }
 
-    void setStorageFolder(std::filesystem::path storageFolder)
-    {
+    void setStorageFolder(const std::filesystem::path &storageFolder) {
         mailFolder = std::filesystem::absolute(storageFolder).string() + MAILS_FOLDER;
         std::filesystem::create_directories(mailFolder);
 
@@ -75,17 +68,14 @@ public:
         std::filesystem::create_directories(usersFolder);
     }
 
-    std::vector<entities::Mail> getMailsForUser(std::string name)
-    {
+    std::vector<entities::Mail> getMailsForUser(const std::string &name) {
         std::vector<entities::Mail> ret{};
 
         std::string userPath = getUserPath(name);
-        if (!std::filesystem::is_directory(userPath))
-        {
+        if (!std::filesystem::is_directory(userPath)) {
             return ret;
         }
-        for (const auto &entry : std::filesystem::directory_iterator(userPath))
-        {
+        for (const auto &entry : std::filesystem::directory_iterator(userPath)) {
             nlohmann::json mailJson;
             std::ifstream fileStream(entry.path());
 
@@ -96,37 +86,30 @@ public:
         return ret;
     }
 
-    void addMail(entities::Mail &mail)
-    {
+    void addMail(entities::Mail &mail) {
         auto uuid = saveMail(mail);
         saveMailForUser(uuid, mail.getSender());
-        for (std::string user : mail.getReceivers())
-        {
+        for (const std::string &user : mail.getReceivers()) {
             saveMailForUser(uuid, user);
         }
     }
 
-    void deleteMailForUser(std::string id, std::string user)
-    {
+    void deleteMailForUser(const std::string &id, const std::string &user) {
         std::filesystem::remove(getUserMailPath(user, id));
     }
 
-    bool mailExists(std::string id)
-    {
+    bool mailExists(std::string id) {
         auto path = getMailPath(id);
         return std::filesystem::is_regular_file(path);
     }
 
-    bool mailExistsForUser(std::string id, std::string user)
-    {
+    bool mailExistsForUser(const std::string &id, const std::string &user) {
         auto path = getUserMailPath(user, id);
         return std::filesystem::is_regular_file(path);
     }
 
-    entities::Mail getMail(std::string id)
-    {
-        if (!mailExists(id))
-        {
+    entities::Mail getMail(std::string id) {
+        if (!mailExists(id)) {
             throw FileNotFoundException();
         }
 
@@ -137,5 +120,5 @@ public:
         return ret;
     }
 
-    ~MailRepository(){};
+    ~MailRepository() = default;
 };

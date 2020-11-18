@@ -5,26 +5,23 @@
 #include <map>
 
 #include "libraries/spdlog/spdlog.h"
-#include "requests/request.h"
-#include "requests/authenticatedRequest.h"
-#include "requests/sendRequest.h"
-#include "requests/listRequest.h"
-#include "requests/readRequest.h"
-#include "requests/deleteRequest.h"
-#include "requests/loginRequest.h"
-#include "requests/quitRequest.h"
-#include "session.h"
-#include "response.h"
+#include "requests/request.hpp"
+#include "requests/authenticatedRequest.hpp"
+#include "requests/sendRequest.hpp"
+#include "requests/listRequest.hpp"
+#include "requests/readRequest.hpp"
+#include "requests/deleteRequest.hpp"
+#include "requests/loginRequest.hpp"
+#include "requests/quitRequest.hpp"
+#include "session.hpp"
+#include "response.hpp"
 
-class RequestProcessor
-{
+class RequestProcessor {
 private:
-    LoginRequest loginRequest;
     std::map<std::string, Request *> requestMap;
 
 public:
-    RequestProcessor()
-    {
+    RequestProcessor() {
         addCommand(new SendRequest());
         addCommand(new ListRequest());
         addCommand(new ReadRequest());
@@ -33,29 +30,23 @@ public:
         addCommand(new QuitRequest());
     }
 
-    ~RequestProcessor()
-    {
-        for (auto const &request : requestMap)
-        {
+    ~RequestProcessor() {
+        for (auto const &request : requestMap) {
             delete request.second;
         }
     }
 
-    void addCommand(Request *request)
-    {
+    void addCommand(Request *request) {
         requestMap[request->getKeyword()] = request;
     }
 
-    std::string handleRequest(Request *request, std::string requestText, Session &session)
-    {
+    std::string handleRequest(Request *request, const std::string &requestText, Session &session) {
 
-        if (AuthenticatedRequest *authenticatedRequest = dynamic_cast<AuthenticatedRequest *>(request))
-        {
+        if (auto *authenticatedRequest = dynamic_cast<AuthenticatedRequest *>(request)) {
             return authenticatedRequest->handleRequest(requestText, session);
         }
 
-        if (LoginRequest *loginRequest = dynamic_cast<LoginRequest *>(request))
-        {
+        if (auto *loginRequest = dynamic_cast<LoginRequest *>(request)) {
             return loginRequest->handleRequest(requestText, session);
         }
 
@@ -63,25 +54,21 @@ public:
         return RESPONSE_ERR;
     }
 
-    std::string process(std::string requestText, Session &session)
-    {
+    std::string process(const std::string &requestText, Session &session) {
 
-        auto keywordEnd = requestText.find("\n");
-        if (keywordEnd == -1)
-        {
+        auto keywordEnd = requestText.find('\n');
+        if (keywordEnd == -1) {
             spdlog::error("Could not find keyword in input!");
             return RESPONSE_ERR;
         }
 
         std::string keyword = requestText.substr(0, keywordEnd);
 
-        try
-        {
+        try {
             auto request = requestMap.at(keyword);
 
             spdlog::debug("Keyword is {}", request->getKeyword());
-            if (request->isValid(requestText))
-            {
+            if (request->isValid(requestText)) {
                 spdlog::debug("Command is valid");
                 return handleRequest(request, requestText, session);
             }
@@ -89,8 +76,7 @@ public:
             spdlog::error("Command is invalid!\n{}", requestText);
             return RESPONSE_ERR;
         }
-        catch (const std::out_of_range &e)
-        {
+        catch (const std::out_of_range &e) {
             spdlog::error("Did not find command with keyword {}", keyword);
             return RESPONSE_ERR;
         }

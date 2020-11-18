@@ -1,56 +1,49 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
-class Session
-{
+class Session {
 private:
     std::string ip;
     std::string username;
     bool authenticated;
 
 public:
-    Session()
-    {
+    Session() {
         this->username = "";
         this->ip = "";
         authenticated = false;
     }
 
-    Session(std::string ip)
-    {
-        this->ip = ip;
+    explicit Session(std::string ip) {
+        this->ip = std::move(ip);
         authenticated = false;
     }
-    ~Session(){};
 
-    std::string getUsername()
-    {
+    ~Session() = default;
+
+    std::string getUsername() {
         return username;
     }
 
-    std::string getIp()
-    {
+    std::string getIp() {
         return ip;
     }
 
-    bool isAuthenticated()
-    {
+    bool isAuthenticated() const {
         return authenticated;
     }
 
-    void authenticate()
-    {
+    void authenticate() {
         authenticated = true;
     }
 
-    void quit()
-    {
+    void quit() {
         authenticated = false;
     }
 
-    void setUsername(std::string username)
-    {
+    void setUsername(std::string username) {
         this->username = username;
     }
 };

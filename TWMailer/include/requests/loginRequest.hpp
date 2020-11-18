@@ -2,31 +2,26 @@
 
 #include <string>
 
-#include "utils/stringUtils.h"
-#include "requests/request.h"
+#include "utils/stringUtils.hpp"
+#include "requests/request.hpp"
 #include "libraries/spdlog/spdlog.h"
-#include "session.h"
-#include "response.h"
-#include "persistence/banRepository.h"
+#include "session.hpp"
+#include "response.hpp"
+#include "persistence/banRepository.hpp"
 
-class LoginRequest : public Request
-{
+class LoginRequest : public Request {
 public:
-    std::string getKeyword()
-    {
+    std::string getKeyword() override {
         return "LOGIN";
     }
 
-    bool hasValidStructure(std::vector<std::string> lines)
-    {
-        if (lines.size() != 3)
-        {
+    static bool hasValidStructure(std::vector<std::string> lines) {
+        if (lines.size() != 3) {
             spdlog::error("LOGIN command has invalid amount of arguments!");
             return false;
         }
 
-        if (lines.at(1).length() > 8)
-        {
+        if (lines.at(1).length() > 8) {
             spdlog::error("LDAP Username is too long!");
             return false;
         }
@@ -34,19 +29,16 @@ public:
         return true;
     }
 
-    bool isValid(std::string requestText)
-    {
+    bool isValid(std::string requestText) override {
         auto lines = stringUtils::split(requestText, "\n");
 
-        if (!hasValidStructure(lines))
-        {
+        if (!hasValidStructure(lines)) {
             return false;
         }
         return true;
     }
 
-    std::string handleRequest(std::string requestText, Session &session)
-    {
+    static std::string handleRequest(const std::string& requestText, Session &session) {
         auto lines = stringUtils::split(requestText, "\n");
 
         std::string username = lines.at(1);
@@ -54,8 +46,8 @@ public:
 
         spdlog::info("LOGIN {}", username);
 
-        if (password != "topSecret")
-        {
+        //TODO LDAP!!!
+        if (password == "badPW") {
             BanRepository::instance().addFailed(session.getIp());
             return RESPONSE_ERR;
         }

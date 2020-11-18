@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include "libraries/json/json.hpp"
-#include "persistence/entities/banTableEntry.h"
+#include "persistence/entities/banTableEntry.hpp"
 
 #define BANS_FILE "/bans.json"
 
@@ -20,9 +20,9 @@ private:
     std::map<std::string, entities::BanTableEntry> bans;
     std::mutex fileOpsMutex;
 
-    BanRepository(){};
+    BanRepository()= default;;
 
-    int ageOfTimepoint(std::chrono::system_clock::time_point time)
+    static int ageOfTimepoint(std::chrono::system_clock::time_point time)
     {
         return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - time).count();
     }
@@ -52,14 +52,14 @@ public:
         return INSTANCE;
     }
 
-    void setStorageFolder(std::filesystem::path storageFolder)
+    void setStorageFolder(const std::filesystem::path& storageFolder)
     {
         bansFile = std::filesystem::absolute(storageFolder).string() + BANS_FILE;
         std::filesystem::create_directories(storageFolder);
         load();
     }
 
-    void addFailed(std::string ip)
+    void addFailed(const std::string& ip)
     {
         if (isBanned(ip))
         {
@@ -83,7 +83,7 @@ public:
         save();
     }
 
-    bool isBanned(std::string ip)
+    bool isBanned(const std::string& ip)
     {
         if (bans.find(ip) == bans.end())
         {

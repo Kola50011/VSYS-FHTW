@@ -5,10 +5,10 @@
 class Request
 {
 protected:
-    Request(){};
+    Request()= default;
 
 public:
-    virtual ~Request(){};
+    virtual ~Request()= default;
     virtual std::string getKeyword() = 0;
     virtual bool isValid(std::string requestText) = 0;
 };

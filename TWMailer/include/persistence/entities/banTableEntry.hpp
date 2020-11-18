@@ -18,7 +18,7 @@ namespace entities
         std::string lastInteraction;
         int tries;
 
-        std::string currentTime()
+        static std::string currentTime()
         {
             auto in_time_t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
             std::stringstream stream;
@@ -33,7 +33,7 @@ namespace entities
             tries = 0;
             updateLastInteraction();
         };
-        ~BanTableEntry(){};
+        ~BanTableEntry()= default;
 
         std::chrono::system_clock::time_point getLastInteraction()
         {
@@ -43,7 +43,7 @@ namespace entities
             return std::chrono::system_clock::from_time_t(std::mktime(&time));
         }
 
-        int getTries()
+        int getTries() const
         {
             return tries;
         }
