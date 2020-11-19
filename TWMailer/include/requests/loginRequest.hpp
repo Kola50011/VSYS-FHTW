@@ -39,7 +39,7 @@ public:
         return true;
     }
 
-    static std::string handleRequest(const std::string& requestText, Session &session) {
+    static std::string handleRequest(const std::string &requestText, Session &session) {
         auto lines = stringUtils::split(requestText, "\n");
 
         std::string username = lines.at(1);
@@ -47,16 +47,13 @@ public:
 
         spdlog::info("LOGIN {}", username);
 
-        //TODO LDAP!!!
-        if (password == "badPW") {
-            BanRepository::instance().addFailed(session.getIp());
-            return RESPONSE_ERR;
+        if (ldapUtils::checkUserAndPassword(username, password)) {
+            session.setUsername(username);
+            session.authenticate();
+            return RESPONSE_OK;
         }
 
-        // TODO ADD Ldap Auth
-        session.setUsername(username);
-        session.authenticate();
-
-        return RESPONSE_OK;
+        BanRepository::instance().addFailed(session.getIp());
+        return RESPONSE_ERR;
     }
 };
