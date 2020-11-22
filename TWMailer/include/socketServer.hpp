@@ -54,10 +54,10 @@ private:
             return;
         }
 
-        Session session{ip};
+        Session session{ip, clientSocketFileDescriptor};
         while (socketUtils::isOpen(clientSocketFileDescriptor)) {
             std::string wholeText = socketUtils::readAll(clientSocketFileDescriptor, BUFFER_SIZE);
-            socketUtils::writeAll(clientSocketFileDescriptor, requestProcessor.process(wholeText, session));
+            socketUtils::writeAll(clientSocketFileDescriptor, requestProcessor.process(wholeText, session), true);
         }
 
         spdlog::info("Closed connection with ID {}", clientSocketFileDescriptor);
@@ -74,11 +74,11 @@ public:
         running = false;
     }
 
-    void open() {
+    void open(bool disableLdap) {
         struct sockaddr_in clientSocketAddress{};
         socklen_t clientSocketAddressSize = sizeof(clientSocketAddress);
 
-        RequestProcessor requestProcessor{};
+        RequestProcessor requestProcessor(disableLdap);
         while (running) {
             auto clientSocketDescriptor = accept(socketFileDescriptor, (struct sockaddr *) &clientSocketAddress,
                                                  &clientSocketAddressSize);

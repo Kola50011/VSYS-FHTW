@@ -2,22 +2,18 @@
 
 #include <string>
 #include <vector>
-#include <regex>
-#include "libraries/spdlog/spdlog.h"
 
-namespace stringUtils
-{
-    std::vector<std::string> split(const std::string& text, const std::string& delimiter)
-    {
-        std::vector<std::string> ret;
-        size_t oldPos{0};
-        size_t pos;
-        while ((pos = text.find(delimiter, oldPos)) != std::string::npos)
-        {
-            ret.push_back(text.substr(oldPos, pos - oldPos));
-            oldPos = pos + 1;
-        }
-        return ret;
+namespace stringUtils {
+    std::vector<std::string> split(const std::string &str, const std::string &delim) {
+        std::vector<std::string> tokens;
+        size_t prev = 0, pos;
+        do {
+            pos = str.find(delim, prev);
+            if (pos == std::string::npos) { pos = str.length(); }
+            std::string token = str.substr(prev, pos - prev);
+            if (!token.empty()) { tokens.push_back(token); }
+            prev = pos + delim.length();
+        } while (pos < str.length() && prev < str.length());
+        return tokens;
     }
-
 } // namespace stringUtils

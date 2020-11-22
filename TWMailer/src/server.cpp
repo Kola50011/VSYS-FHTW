@@ -17,6 +17,9 @@ int main(int argc, char const *argv[]) {
     bool debug{false};
     app.add_flag("--debug", debug, "debug messages");
 
+    bool disableLdap{false};
+    app.add_flag("--disableLdap", disableLdap, "disables ldap");
+
     CLI11_PARSE(app, argc, argv);
 
     if (debug) {
@@ -29,7 +32,7 @@ int main(int argc, char const *argv[]) {
 
     SocketServer socketServer(port);
     spdlog::info("Server started. Listening for connectins.");
-    socketServer.open();
+    socketServer.open(disableLdap);
 
     return EXIT_SUCCESS;
 }

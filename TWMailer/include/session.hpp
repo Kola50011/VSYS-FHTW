@@ -6,18 +6,21 @@
 class Session {
 private:
     std::string ip;
+    int socket;
     std::string username;
     bool authenticated;
 
 public:
     Session() {
         this->username = "";
+        this->socket = -1;
         this->ip = "";
         authenticated = false;
     }
 
-    explicit Session(std::string ip) {
+    explicit Session(std::string ip, int socket) {
         this->ip = std::move(ip);
+        this->socket = socket;
         authenticated = false;
     }
 
@@ -29,6 +32,10 @@ public:
 
     std::string getIp() {
         return ip;
+    }
+
+    int getSocket() const {
+        return socket;
     }
 
     bool isAuthenticated() const {

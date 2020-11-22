@@ -24,11 +24,8 @@ public:
         std::string mailsString;
         int mailCount{};
         for (auto &mail : mails) {
-            if (std::find(mail.getReceivers().begin(), mail.getReceivers().end(), session.getUsername()) !=
-                mail.getReceivers().end()) {
-                mailCount++;
-                mailsString += mail.getId() + " " + mail.getSubject() + "\n";
-            }
+            mailCount++;
+            mailsString += mail.getId() + " " + mail.getSubject() + "\n";
         }
 
         return RESPONSE_OK + std::to_string(mailCount) + "\n" + mailsString;

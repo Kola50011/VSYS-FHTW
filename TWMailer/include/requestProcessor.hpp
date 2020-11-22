@@ -21,12 +21,12 @@ private:
     std::map<std::string, Request *> requestMap;
 
 public:
-    RequestProcessor() {
+    explicit RequestProcessor(bool disableLdap) {
         addCommand(new SendRequest());
         addCommand(new ListRequest());
         addCommand(new ReadRequest());
         addCommand(new DeleteRequest());
-        addCommand(new LoginRequest());
+        addCommand(new LoginRequest(disableLdap));
         addCommand(new QuitRequest());
     }
 
@@ -40,7 +40,7 @@ public:
         requestMap[request->getKeyword()] = request;
     }
 
-    std::string handleRequest(Request *request, const std::string &requestText, Session &session) {
+    static std::string handleRequest(Request *request, const std::string &requestText, Session &session) {
 
         if (auto *authenticatedRequest = dynamic_cast<AuthenticatedRequest *>(request)) {
             return authenticatedRequest->handleRequest(requestText, session);

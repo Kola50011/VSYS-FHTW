@@ -17,6 +17,10 @@ private:
         }
 
         auto receivers = stringUtils::split(lines.at(1), " ");
+        if (receivers.empty()) {
+            spdlog::error("No receivers specified!");
+            return false;
+        }
         for (auto &receiver : receivers) {
             if (receiver.length() > 8) {
 
@@ -75,6 +79,6 @@ public:
 
         saveMail(session.getUsername(), receivers, subject, content);
 
-        return "OK\n";
+        return RESPONSE_OK;
     }
 };

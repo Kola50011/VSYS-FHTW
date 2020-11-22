@@ -26,9 +26,12 @@ namespace socketUtils {
         return wholeText;
     }
 
-    void writeAll(int socketFileDescriptor, const std::string& text) {
-        if (write(socketFileDescriptor, text.c_str(), strlen(text.c_str()) + 1) < 0) {
+    bool writeAll(int socketFileDescriptor, const std::string& text, bool logging = false) {
+        bool success = (send(socketFileDescriptor, text.c_str(), strlen(text.c_str()) + 1, MSG_NOSIGNAL) > 0);
+        if (!success && logging) {
             spdlog::error("Could not write string {}!", text);
+
         }
+        return success;
     }
 } // namespace socketUtils

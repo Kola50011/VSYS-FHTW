@@ -11,7 +11,12 @@
 #include "utils/ldapUtils.hpp"
 
 class LoginRequest : public Request {
+private:
+    bool disableLdap = false;
+
 public:
+    explicit LoginRequest(bool _disableLdap) : disableLdap(_disableLdap) {}
+
     std::string getKeyword() override {
         return "LOGIN";
     }
@@ -39,15 +44,21 @@ public:
         return true;
     }
 
-    static std::string handleRequest(const std::string &requestText, Session &session) {
+    std::string handleRequest(const std::string &requestText, Session &session) {
         auto lines = stringUtils::split(requestText, "\n");
+
+        if (BanRepository::instance().isBanned(session.getIp()))
+        {
+            spdlog::warn("Banned user with IP {} tried to login. Dropping connection", session.getIp());
+            close(session.getSocket());
+        }
 
         std::string username = lines.at(1);
         std::string password = lines.at(2);
 
         spdlog::info("LOGIN {}", username);
 
-        if (ldapUtils::checkUserAndPassword(username, password)) {
+        if (disableLdap || ldapUtils::checkUserAndPassword(username, password)) {
             session.setUsername(username);
             session.authenticate();
             return RESPONSE_OK;

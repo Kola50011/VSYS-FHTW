@@ -5,6 +5,7 @@
 
 #include <random>
 #include <sstream>
+#include <regex>
 
 namespace uuid
 {

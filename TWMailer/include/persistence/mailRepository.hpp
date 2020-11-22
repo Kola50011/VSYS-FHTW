@@ -31,6 +31,10 @@ private:
         return usersFolder.string() + "/" + user;
     }
 
+    std::filesystem::path getUserSentMailPath(const std::string &user, const std::string &id) {
+        return getUserPath(user).string() + "/sent/" + id + ".json";
+    }
+
     std::filesystem::path getUserMailPath(const std::string &user, const std::string &id) {
         return getUserPath(user).string() + "/" + id + ".json";
     }
@@ -45,7 +49,16 @@ private:
         return uuid;
     }
 
-    void saveMailForUser(const std::string &id, const std::string &user) {
+    void saveMailForSender(const std::string &id, const std::string &user) {
+        auto source = getUserSentMailPath(user, id);
+        auto target = getMailPath(id);
+
+        std::filesystem::create_directories(source.parent_path());
+        std::error_code error;
+        std::filesystem::create_symlink(target, source, error);
+    }
+
+    void saveMailForReceiver(const std::string &id, const std::string &user) {
         auto source = getUserMailPath(user, id);
         auto target = getMailPath(id);
 
@@ -88,9 +101,9 @@ public:
 
     void addMail(entities::Mail &mail) {
         auto uuid = saveMail(mail);
-        saveMailForUser(uuid, mail.getSender());
+        saveMailForSender(uuid, mail.getSender());
         for (const std::string &user : mail.getReceivers()) {
-            saveMailForUser(uuid, user);
+            saveMailForReceiver(uuid, user);
         }
     }
 
