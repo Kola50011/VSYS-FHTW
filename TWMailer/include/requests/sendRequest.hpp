@@ -16,7 +16,7 @@ private:
             return false;
         }
 
-        auto receivers = stringUtils::split(lines.at(1), " ");
+        auto receivers = stringUtils::split(lines.at(1), " ", false);
         if (receivers.empty()) {
             spdlog::error("No receivers specified!");
             return false;
@@ -69,7 +69,7 @@ public:
         // Remove terminator element
         lines.pop_back();
 
-        auto receivers = stringUtils::split(lines.at(1), " ");
+        auto receivers = stringUtils::split(lines.at(1), " ", false);
         auto subject = lines.at(2);
 
         std::string content;

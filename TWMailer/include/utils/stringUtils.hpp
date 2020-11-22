@@ -4,7 +4,7 @@
 #include <vector>
 
 namespace stringUtils {
-    std::vector<std::string> split(const std::string &str, const std::string &delim) {
+    std::vector<std::string> split(const std::string &str, const std::string &delim, bool withEmptyElements = true) {
         std::vector<std::string> tokens;
         size_t prev = 0, pos;
         do {
@@ -13,7 +13,9 @@ namespace stringUtils {
                 pos = str.length();
             }
             std::string token = str.substr(prev, pos - prev);
-            tokens.push_back(token);
+            if (!token.empty() || withEmptyElements) {
+                tokens.push_back(token);
+            }
             prev = pos + delim.length();
         } while (pos < str.length() && prev < str.length());
         return tokens;
