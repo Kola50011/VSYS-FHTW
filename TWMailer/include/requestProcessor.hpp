@@ -9,10 +9,10 @@
 #include "requests/authenticatedRequest.hpp"
 #include "requests/sendRequest.hpp"
 #include "requests/listRequest.hpp"
+#include "requests/listSentRequest.hpp"
 #include "requests/readRequest.hpp"
 #include "requests/deleteRequest.hpp"
 #include "requests/loginRequest.hpp"
-#include "requests/quitRequest.hpp"
 #include "session.hpp"
 #include "response.hpp"
 
@@ -24,10 +24,10 @@ public:
     explicit RequestProcessor(bool disableLdap) {
         addCommand(new SendRequest());
         addCommand(new ListRequest());
+        addCommand(new ListSentRequest());
         addCommand(new ReadRequest());
         addCommand(new DeleteRequest());
         addCommand(new LoginRequest(disableLdap));
-        addCommand(new QuitRequest());
     }
 
     ~RequestProcessor() {

@@ -47,11 +47,8 @@ public:
 
         auto mailRepository = MailRepository::instance();
         if (mailRepository.mailExists(mailId)) {
-            std::string ret = RESPONSE_OK;
             auto mail = mailRepository.getMail(mailId);
-            spdlog::info("3");
-            ret += mail.getContent();
-            return ret;
+            return std::string(RESPONSE_OK).append(mail.toString()).append("\n");
         }
 
         return RESPONSE_ERR;

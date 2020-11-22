@@ -38,16 +38,19 @@ namespace entities {
             return subject;
         }
 
-        std::string getContent() {
-            return content;
-        }
-
         std::string getId() {
             return id;
         }
 
         void setId(std::string _id) {
             id = std::move(_id);
+        }
+
+        std::string toString() {
+            std::ostringstream concatReceivers;
+            std::copy(receivers.begin(), receivers.end(), std::ostream_iterator<std::string>(concatReceivers, " "));
+            return std::string(sender).append("\n").append(concatReceivers.str()).append("\n").append(subject).append(
+                    "\n").append(content);
         }
     };
 } // namespace entities

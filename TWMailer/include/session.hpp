@@ -46,10 +46,6 @@ public:
         authenticated = true;
     }
 
-    void quit() {
-        authenticated = false;
-    }
-
     void setUsername(std::string username) {
         this->username = username;
     }

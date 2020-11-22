@@ -10,12 +10,9 @@
 
 #include "utils/socketUtils.hpp"
 #include "utils/inputUtils.hpp"
+#include <utils/stringUtils.hpp>
 
 #define BUFFER_SIZE 1024
-
-void sendMessage(int socketFileDescriptor);
-
-void logIn(int socketFileDescriptor);
 
 using namespace std;
 
@@ -46,7 +43,7 @@ void sendRequest(int socketFileDescriptor, const std::string &text) {
     }
 }
 
-void logIn(int socketFileDescriptor) {
+void login(int socketFileDescriptor) {
     bool loggingIn = true;
 
     while (loggingIn) {
@@ -92,6 +89,64 @@ void sendMessage(int socketFileDescriptor) {
     }
 }
 
+void listMessages(int socketFileDescriptor) {
+    sendRequest(socketFileDescriptor, "LIST\n");
+    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    if (result.starts_with(RESPONSE_OK)) {
+        vector lines = stringUtils::split(result, "\n");
+        cout << "Total count: " << lines.at(1) << "\nMessages: " << endl;
+        for (int i = 2; i < lines.size(); i++) {
+            cout << lines.at(i) << endl;
+        }
+    } else {
+        cout << "There was an error listing the messages." << endl;
+    }
+}
+
+void listSentMessages(int socketFileDescriptor) {
+    sendRequest(socketFileDescriptor, "LIST_SENT\n");
+    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    if (result.starts_with(RESPONSE_OK)) {
+        vector lines = stringUtils::split(result, "\n");
+        cout << "Total count: " << lines.at(1) << "\nMessages: " << endl;
+        for (int i = 2; i < lines.size(); i++) {
+            cout << lines.at(i) << endl;
+        }
+    } else {
+        cout << "There was an error listing the messages." << endl;
+    }
+}
+
+void readMessage(int socketFileDescriptor) {
+    cout << "MessageID: ";
+    string messageId;
+    getline(cin, messageId);
+    sendRequest(socketFileDescriptor, string("READ\n").append(messageId).append("\n"));
+    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    if (result.starts_with(RESPONSE_OK)) {
+        vector lines = stringUtils::split(result, "\n");
+        cout << "Sender: " << lines.at(1) << "\nReceivers: " << lines.at(2) << "\nSubject: " << lines.at(3) << endl;
+        for (int i = 4; i < lines.size(); i++) {
+            cout << lines.at(i) << endl;
+        }
+    } else {
+        cout << "There was an error retrieving the message." << endl;
+    }
+}
+
+void deleteMessage(int socketFileDescriptor) {
+    cout << "MessageID: ";
+    string messageId;
+    getline(cin, messageId);
+    sendRequest(socketFileDescriptor, string("DEL\n").append(messageId).append("\n"));
+    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    if (result == RESPONSE_OK) {
+        cout << "Message deleted successfully." << endl;
+    } else {
+        cout << "There was an error deleting the message." << endl;
+    }
+}
+
 int main(int argc, char const *argv[]) {
     CLI::App app{"TWMailer Client"};
 
@@ -112,11 +167,11 @@ int main(int argc, char const *argv[]) {
 
     auto socketFileDescriptor = connect(address.c_str(), port);
 
-    logIn(socketFileDescriptor);
+    login(socketFileDescriptor);
 
     while (true) {
         cout
-                << "Please select you command:\n1 - Send new message\n2 - List messages\n3 - Read message\n4 - Delete message\n5 - Quit"
+                << "Please select you command:\n1 - Send new message\n2 - List messages\n3 - List sent messages\n4 - Read message\n5 - Delete message\n6 - Quit"
                 << endl;
         int selection;
         if (!(cin >> selection)) {
@@ -131,35 +186,22 @@ int main(int argc, char const *argv[]) {
                 sendMessage(socketFileDescriptor);
                 break;
             case 2:
+                listMessages(socketFileDescriptor);
                 break;
             case 3:
+                listSentMessages(socketFileDescriptor);
                 break;
             case 4:
+                readMessage(socketFileDescriptor);
                 break;
             case 5:
+                deleteMessage(socketFileDescriptor);
+                break;
+            case 6:
                 close(socketFileDescriptor);
                 return EXIT_SUCCESS;
             default:
                 cout << "The number needs to be between 1 and 5" << endl;
         }
     }
-
-    sendRequest(socketFileDescriptor,
-                "SEND\nif19b002\ntestSubject\nThis is a great message\nwith some newlines\nand an end.\n.\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    sendRequest(socketFileDescriptor, "LIST\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    sendRequest(socketFileDescriptor, "QUIT\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-
-    sendRequest(socketFileDescriptor, "LOGIN\nif19b002\npasswort\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    sendRequest(socketFileDescriptor, "LIST\n");
-    socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    // sendRequest(socketFileDescriptor, "DEL\n5665d682-75bb-4236-a7df-9f8cca24791e\n");
-    // socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    // sendRequest(socketFileDescriptor, "READ\nc9150128-830c-49aa-ae0f-368ce4af0f91\n");
-    // socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-
-    return EXIT_SUCCESS;
 }

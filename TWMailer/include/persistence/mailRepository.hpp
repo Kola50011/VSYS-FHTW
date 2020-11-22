@@ -15,6 +15,7 @@
 
 #define MAILS_FOLDER "/mails"
 #define USERS_FOLDER "/users"
+#define SENT_FOLDER "/sent"
 
 class MailRepository {
 private:
@@ -31,12 +32,16 @@ private:
         return usersFolder.string() + "/" + user;
     }
 
-    std::filesystem::path getUserSentMailPath(const std::string &user, const std::string &id) {
-        return getUserPath(user).string() + "/sent/" + id + ".json";
+    std::filesystem::path getUserSentPath(const std::string &user) {
+        return getUserPath(user).string() + SENT_FOLDER;
     }
 
     std::filesystem::path getUserMailPath(const std::string &user, const std::string &id) {
         return getUserPath(user).string() + "/" + id + ".json";
+    }
+
+    std::filesystem::path getUserSentMailPath(const std::string &user, const std::string &id) {
+        return getUserSentPath(user).string() + "/" + id + ".json";
     }
 
     std::string saveMail(entities::Mail &mail) {
@@ -89,6 +94,30 @@ public:
             return ret;
         }
         for (const auto &entry : std::filesystem::directory_iterator(userPath)) {
+            if (entry.is_directory()) {
+                continue;
+            }
+            nlohmann::json mailJson;
+            std::ifstream fileStream(entry.path());
+
+            fileStream >> mailJson;
+            ret.push_back(mailJson.get<entities::Mail>());
+        }
+
+        return ret;
+    }
+
+    std::vector<entities::Mail> getSentMailsForUser(const std::string &name) {
+        std::vector<entities::Mail> ret{};
+
+        std::string userSentPath = getUserSentPath(name);
+        if (!std::filesystem::is_directory(userSentPath)) {
+            return ret;
+        }
+        for (const auto &entry : std::filesystem::directory_iterator(userSentPath)) {
+            if (entry.is_directory()) {
+                continue;
+            }
             nlohmann::json mailJson;
             std::ifstream fileStream(entry.path());
 
@@ -111,7 +140,7 @@ public:
         std::filesystem::remove(getUserMailPath(user, id));
     }
 
-    bool mailExists(std::string id) {
+    bool mailExists(const std::string& id) {
         auto path = getMailPath(id);
         return std::filesystem::is_regular_file(path);
     }
@@ -121,7 +150,7 @@ public:
         return std::filesystem::is_regular_file(path);
     }
 
-    entities::Mail getMail(std::string id) {
+    entities::Mail getMail(const std::string& id) {
         if (!mailExists(id)) {
             throw FileNotFoundException();
         }
