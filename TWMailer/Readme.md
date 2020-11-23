@@ -27,6 +27,14 @@ make all
 ./client
 ```
 
+## Docker
+The server is also available as a minimal alpine docker image.
+
+```bash
+cd docker
+docker-compose up --build
+```
+
 ## Encryption?
 
 ### At Rest

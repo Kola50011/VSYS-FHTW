@@ -1,0 +1,38 @@
+version: "3"
+services:
+  build:
+    build:
+      context: ./..
+      dockerfile: ./docker/TWMailer/Dockerfile
+    ports:
+      - "2222:22"
+      - "8080:8080"
+    cap_add:
+      - sys_ptrace
+  server:
+    image: docker_build:latest
+    ports:
+      - "8080:8080"
+    command:
+      - "./server"
+      - "--port"
+      - "8080"
+      - "--storageFolder"
+      - "./storage"
+      - "--debug"
+    depends_on:
+      - build
+    volumes:
+      - "./storage:/twmailer/storage:rw"
+#  client:
+#    image: docker_build:latest
+#    command:
+#      - "sleep"
+#      - "100m"
+#  remote-build:
+#    build: clion-remote-build/.
+#    ports:
+#      - "2222:22"
+#      - "8080:8080"
+#    cap_add:
+#      - sys_ptrace
