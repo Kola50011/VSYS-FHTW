@@ -9,6 +9,7 @@
 #include "libraries/spdlog/spdlog.h"
 #include "libraries/json/json.hpp"
 #include "libraries/uuid/uuid.h"
+#include "libraries/plusaes/plusaes.hpp"
 
 #include "exceptions/fileNotFoundException.hpp"
 #include "persistence/entities/mail.hpp"
@@ -23,6 +24,50 @@ private:
 
     std::filesystem::path mailFolder;
     std::filesystem::path usersFolder;
+
+    bool doEncryption = false;
+    std::vector<unsigned char> key;
+    const unsigned char iv[16] = {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+    };
+
+    std::string encrypt(std::string decrypted) {
+        std::vector<uint8_t> encrypted(plusaes::get_padded_encrypted_size(decrypted.size()));
+
+        plusaes::encrypt_cbc((unsigned char *) decrypted.data(), decrypted.size(), &key[0], key.size(), &iv,
+                             &encrypted[0], encrypted.size(), true);
+
+        // Convert char array to savable string
+        std::string ret;
+        for (auto character : encrypted) {
+            ret += std::to_string(character) + " ";
+        }
+        return ret;
+    }
+
+    std::string decrypt(const std::string &encryptedString) {
+        // Convert from saved string back to int array
+        std::vector<uint8_t> encrypted;
+        for (const auto &number :  stringUtils::split(encryptedString, " ")) {
+            if (!number.empty() && number != "\n") {
+                encrypted.push_back(std::stoi(number));
+            }
+        }
+
+        unsigned long padded_size = 0;
+        std::vector<unsigned char> decrypted(encryptedString.size());
+
+        plusaes::decrypt_cbc(&encrypted[0], encrypted.size(), &key[0], key.size(), &iv, &decrypted[0], decrypted.size(),
+                             &padded_size);
+
+        // Char array to string
+        std::string ret;
+        for (auto character : decrypted) {
+            ret += character;
+        }
+        return ret;
+    }
 
     std::filesystem::path getMailPath(const std::string &id) {
         return mailFolder.string() + "/" + id + ".json";
@@ -48,9 +93,17 @@ private:
         auto uuid = uuid::generate_uuid_v4();
         mail.setId(uuid);
 
-        std::ofstream fileStream(getMailPath(uuid));
+        std::stringstream jsonStringStream;
         nlohmann::json mailjson = mail;
-        fileStream << std::setw(4) << mailjson << std::endl;
+        jsonStringStream << std::setw(4) << mailjson << std::endl;
+
+        std::ofstream fileStream(getMailPath(uuid));
+
+        if (doEncryption) {
+            fileStream << encrypt(jsonStringStream.str()) << std::endl;
+        } else {
+            fileStream << jsonStringStream.str();
+        }
         return uuid;
     }
 
@@ -78,6 +131,17 @@ public:
         return INSTANCE;
     }
 
+    void setKey(const std::string &_key) {
+        if (_key.size() != 16) {
+            spdlog::error("Key must be exactly 16 characters long!");
+            return;
+        }
+        char keyArray[17];
+        std::strcpy(keyArray, _key.c_str());
+        this->key = plusaes::key_from_string(&keyArray); // 16-char = 128-bit
+        doEncryption = true;
+    }
+
     void setStorageFolder(const std::filesystem::path &storageFolder) {
         mailFolder = std::filesystem::absolute(storageFolder).string() + MAILS_FOLDER;
         std::filesystem::create_directories(mailFolder);
@@ -97,11 +161,8 @@ public:
             if (entry.is_directory()) {
                 continue;
             }
-            nlohmann::json mailJson;
-            std::ifstream fileStream(entry.path());
-
-            fileStream >> mailJson;
-            ret.push_back(mailJson.get<entities::Mail>());
+            auto mail = getMail(entry.path().stem());
+            ret.push_back(mail);
         }
 
         return ret;
@@ -118,11 +179,8 @@ public:
             if (entry.is_directory()) {
                 continue;
             }
-            nlohmann::json mailJson;
-            std::ifstream fileStream(entry.path());
-
-            fileStream >> mailJson;
-            ret.push_back(mailJson.get<entities::Mail>());
+            auto mail = getMail(entry.path().stem());
+            ret.push_back(mail);
         }
 
         return ret;
@@ -140,7 +198,7 @@ public:
         std::filesystem::remove(getUserMailPath(user, id));
     }
 
-    bool mailExists(const std::string& id) {
+    bool mailExists(const std::string &id) {
         auto path = getMailPath(id);
         return std::filesystem::is_regular_file(path);
     }
@@ -150,14 +208,28 @@ public:
         return std::filesystem::is_regular_file(path);
     }
 
-    entities::Mail getMail(const std::string& id) {
+    entities::Mail getMail(const std::string &id) {
         if (!mailExists(id)) {
             throw FileNotFoundException();
         }
 
-        nlohmann::json mailJson;
         std::ifstream fileStream(getMailPath(id));
-        fileStream >> mailJson;
+        std::stringstream fileTextStream;
+
+        fileTextStream << fileStream.rdbuf();
+
+        std::string fileText = fileTextStream.str();
+        if (doEncryption) {
+            fileText = decrypt(fileText);
+        } else {
+            if (fileText[0] != '{') {
+                spdlog::error("Trying to decrypt encrypted message! Server will exit now!");
+                std::quick_exit(1);
+            }
+        }
+        spdlog::debug(fileText);
+
+        auto mailJson = nlohmann::json::parse(fileText);
         auto ret = mailJson.get<entities::Mail>();
         return ret;
     }
