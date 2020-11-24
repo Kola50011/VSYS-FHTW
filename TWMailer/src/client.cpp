@@ -36,11 +36,13 @@ int connect(const char *address, int port) {
     return socketFileDescriptor;
 }
 
-void sendRequest(int socketFileDescriptor, const std::string &text) {
-    if (!socketUtils::writeAll(socketFileDescriptor, text)) {
+string receiveResponse(int socketFileDescriptor) {
+    string response = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    if (response.empty()) {
         cerr << "Server closed the connection!" << endl;
         exit(EXIT_FAILURE);
     }
+    return response;
 }
 
 void login(int socketFileDescriptor) {
@@ -53,9 +55,9 @@ void login(int socketFileDescriptor) {
         cout << "Password: " << flush;
         string password = inputUtils::getPass();
 
-        sendRequest(socketFileDescriptor,
-                    string("LOGIN\n").append(username).append("\n").append(password).append("\n"));
-        if (socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE) == RESPONSE_OK) {
+        socketUtils::writeAll(socketFileDescriptor,
+                              string("LOGIN\n").append(username).append("\n").append(password).append("\n"));
+        if (receiveResponse(socketFileDescriptor) == RESPONSE_OK) {
             cout << "Logged in successfully" << endl;
             loggingIn = false;
         } else {
@@ -78,11 +80,9 @@ void sendMessage(int socketFileDescriptor) {
         getline(cin, line);
         message.append(line).append("\n");
     }
-    sendRequest(socketFileDescriptor,
-                string("SEND\n").append(receivers).append("\n").append(subject).append("\n").append(
-                        message));
-    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    if (result == RESPONSE_OK) {
+    socketUtils::writeAll(socketFileDescriptor,
+                          string("SEND\n").append(receivers).append("\n").append(subject).append("\n").append(message));
+    if (receiveResponse(socketFileDescriptor) == RESPONSE_OK) {
         cout << "Message sent successfully." << endl;
     } else {
         cout << "There was an error sending the message." << endl;
@@ -90,8 +90,8 @@ void sendMessage(int socketFileDescriptor) {
 }
 
 void listMessages(int socketFileDescriptor) {
-    sendRequest(socketFileDescriptor, "LIST\n");
-    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    socketUtils::writeAll(socketFileDescriptor, "LIST\n");
+    string result = receiveResponse(socketFileDescriptor);
     if (result.starts_with(RESPONSE_OK)) {
         vector lines = stringUtils::split(result, "\n");
         cout << "Total count: " << lines.at(1) << "\nMessages: " << endl;
@@ -104,8 +104,8 @@ void listMessages(int socketFileDescriptor) {
 }
 
 void listSentMessages(int socketFileDescriptor) {
-    sendRequest(socketFileDescriptor, "LIST_SENT\n");
-    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    socketUtils::writeAll(socketFileDescriptor, "LIST_SENT\n");
+    string result = receiveResponse(socketFileDescriptor);
     if (result.starts_with(RESPONSE_OK)) {
         vector lines = stringUtils::split(result, "\n");
         cout << "Total count: " << lines.at(1) << "\nMessages: " << endl;
@@ -121,8 +121,8 @@ void readMessage(int socketFileDescriptor) {
     cout << "MessageID: ";
     string messageId;
     getline(cin, messageId);
-    sendRequest(socketFileDescriptor, string("READ\n").append(messageId).append("\n"));
-    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
+    socketUtils::writeAll(socketFileDescriptor, string("READ\n").append(messageId).append("\n"));
+    string result = receiveResponse(socketFileDescriptor);
     if (result.starts_with(RESPONSE_OK)) {
         vector lines = stringUtils::split(result, "\n");
         cout << "Sender: " << lines.at(1) << "\nReceivers: " << lines.at(2) << "\nSubject: " << lines.at(3) << endl;
@@ -138,9 +138,8 @@ void deleteMessage(int socketFileDescriptor) {
     cout << "MessageID: ";
     string messageId;
     getline(cin, messageId);
-    sendRequest(socketFileDescriptor, string("DEL\n").append(messageId).append("\n"));
-    string result = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    if (result == RESPONSE_OK) {
+    socketUtils::writeAll(socketFileDescriptor, string("DEL\n").append(messageId).append("\n"));
+    if (receiveResponse(socketFileDescriptor) == RESPONSE_OK) {
         cout << "Message deleted successfully." << endl;
     } else {
         cout << "There was an error deleting the message." << endl;

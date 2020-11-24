@@ -44,13 +44,14 @@ public:
         return true;
     }
 
-    std::string handleRequest(const std::string &requestText, Session &session) {
+    std::string handleRequest(const std::string &requestText, Session &session) const {
         auto lines = stringUtils::split(requestText, "\n");
 
         if (BanRepository::instance().isBanned(session.getIp()))
         {
             spdlog::warn("Banned user with IP {} tried to login. Dropping connection", session.getIp());
             close(session.getSocket());
+            pthread_exit(EXIT_SUCCESS);
         }
 
         std::string username = lines.at(1);

@@ -14,10 +14,13 @@ namespace socketUtils {
         std::string wholeText;
 
         char buffer[bufferSize];
-        buffer[bufferSize - 1] = '\0';
         int recvLen;
         do {
             recvLen = read(socketFileDescriptor, buffer, sizeof(buffer) - 1);
+            if (recvLen < 0) {
+                return "";
+            }
+            buffer[recvLen] = '\0';
             wholeText += std::string(buffer);
         } while (recvLen >= bufferSize - 1);
 
@@ -26,12 +29,9 @@ namespace socketUtils {
         return wholeText;
     }
 
-    bool writeAll(int socketFileDescriptor, const std::string& text, bool logging = false) {
-        bool success = (send(socketFileDescriptor, text.c_str(), strlen(text.c_str()) + 1, MSG_NOSIGNAL) > 0);
-        if (!success && logging) {
+    void writeAll(int socketFileDescriptor, const std::string& text, bool logging = false) {
+        if (send(socketFileDescriptor, text.c_str(), strlen(text.c_str()) + 1, MSG_NOSIGNAL) < 0 && logging) {
             spdlog::error("Could not write string {}!", text);
-
         }
-        return success;
     }
 } // namespace socketUtils

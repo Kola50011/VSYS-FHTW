@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include "libraries/spdlog/spdlog.h"
 #include "utils/stringUtils.hpp"
@@ -43,7 +44,7 @@ private:
 
     static void
     saveMail(std::string sender, std::vector<std::string> receivers, std::string subject, std::string content) {
-        entities::Mail mail{sender, receivers, subject, content};
+        entities::Mail mail{std::move(sender), std::move(receivers), std::move(subject), std::move(content)};
         MailRepository::instance().addMail(mail);
     }
 
