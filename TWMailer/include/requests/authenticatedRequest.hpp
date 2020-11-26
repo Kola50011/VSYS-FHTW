@@ -8,23 +8,18 @@
 #include "response.hpp"
 #include "session.hpp"
 
-class AuthenticatedRequest : public Request
-{
+class AuthenticatedRequest : public Request {
 private:
     virtual std::string process(std::string requestText, Session &session) = 0;
 
 protected:
-    AuthenticatedRequest()= default;
+    AuthenticatedRequest() = default;
 
 public:
-    std::string handleRequest(std::string requestText, Session &session)
-    {
-        if (session.isAuthenticated())
-        {
+    std::string handleRequest(std::string requestText, Session &session) {
+        if (session.isAuthenticated()) {
             return this->process(std::move(requestText), session);
-        }
-        else
-        {
+        } else {
             spdlog::warn("Tried to call authenticated request without authenticated session!");
             return RESPONSE_ERR;
         }

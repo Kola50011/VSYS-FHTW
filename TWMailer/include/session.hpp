@@ -46,7 +46,7 @@ public:
         authenticated = true;
     }
 
-    void setUsername(std::string username) {
-        this->username = username;
+    void setUsername(std::string _username) {
+        this->username = std::move(_username);
     }
 };

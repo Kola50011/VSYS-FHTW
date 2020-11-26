@@ -19,9 +19,9 @@ private:
     std::map<std::string, entities::BanTableEntry> bans;
     std::mutex fileOpsMutex;
 
-    BanRepository() = default;;
+    BanRepository() = default;
 
-    static int ageOfTimepoint(std::chrono::system_clock::time_point time) {
+    static int ageOfTimePoint(std::chrono::system_clock::time_point time) {
         return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - time).count();
     }
 
@@ -57,13 +57,14 @@ public:
             return;
         }
 
+        // We only need to lock while writing to ensure that we have the correct state for each IP saved
         std::lock_guard<std::mutex> lockGuard(fileOpsMutex);
         if (bans.find(ip) == bans.end()) {
             bans[ip] = entities::BanTableEntry();
         }
 
         entities::BanTableEntry &ban = bans[ip];
-        if (ageOfTimepoint(ban.getLastInteraction()) > TRY_TIMEOUT) {
+        if (ageOfTimePoint(ban.getLastInteraction()) > TRY_TIMEOUT) {
             ban.setTries(0);
         }
         ban.setTries(ban.getTries() + 1);
@@ -78,6 +79,6 @@ public:
         }
 
         entities::BanTableEntry &ban = bans[ip];
-        return ban.getTries() >= BAN_TRIES && ageOfTimepoint(ban.getLastInteraction()) < BAN_TIME;
+        return ban.getTries() >= BAN_TRIES && ageOfTimePoint(ban.getLastInteraction()) < BAN_TIME;
     }
 };

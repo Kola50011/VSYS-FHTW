@@ -11,11 +11,7 @@
 #include "response.hpp"
 
 class ReadRequest : public AuthenticatedRequest {
-public:
-    std::string getKeyword() override {
-        return "READ";
-    }
-
+private:
     static bool hasValidStructure(std::vector<std::string> lines) {
         if (lines.size() < 2) {
             spdlog::error("READ command has invalid amount of arguments!");
@@ -27,6 +23,11 @@ public:
             return false;
         }
         return true;
+    }
+
+public:
+    std::string getKeyword() override {
+        return "READ";
     }
 
     bool isValid(std::string requestText) override {

@@ -20,22 +20,6 @@ class RequestProcessor {
 private:
     std::map<std::string, Request *> requestMap;
 
-public:
-    explicit RequestProcessor(bool disableLdap) {
-        addCommand(new SendRequest());
-        addCommand(new ListRequest());
-        addCommand(new ListSentRequest());
-        addCommand(new ReadRequest());
-        addCommand(new DeleteRequest());
-        addCommand(new LoginRequest(disableLdap));
-    }
-
-    ~RequestProcessor() {
-        for (auto const &request : requestMap) {
-            delete request.second;
-        }
-    }
-
     void addCommand(Request *request) {
         requestMap[request->getKeyword()] = request;
     }
@@ -52,6 +36,22 @@ public:
 
         spdlog::error("Request is neither instance of AuthenticatedRequest or LoginRequest! This should NOT happen!");
         return RESPONSE_ERR;
+    }
+
+public:
+    explicit RequestProcessor(bool disableLdap) {
+        addCommand(new SendRequest());
+        addCommand(new ListRequest());
+        addCommand(new ListSentRequest());
+        addCommand(new ReadRequest());
+        addCommand(new DeleteRequest());
+        addCommand(new LoginRequest(disableLdap));
+    }
+
+    ~RequestProcessor() {
+        for (auto const &request : requestMap) {
+            delete request.second;
+        }
     }
 
     std::string process(const std::string &requestText, Session &session) {

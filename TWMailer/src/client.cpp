@@ -14,6 +14,8 @@
 
 #define BUFFER_SIZE 1024
 
+void readMessageList(int socketFileDescriptor);
+
 using namespace std;
 
 int connect(const char *address, int port) {
@@ -38,7 +40,7 @@ int connect(const char *address, int port) {
 
 string receiveResponse(int socketFileDescriptor) {
     string response = socketUtils::readAll(socketFileDescriptor, BUFFER_SIZE);
-    if (response.empty()) {
+    if (response.empty()) { // The server should always at least send OK or ERR
         cerr << "Server closed the connection!" << endl;
         exit(EXIT_FAILURE);
     }
@@ -89,8 +91,7 @@ void sendMessage(int socketFileDescriptor) {
     }
 }
 
-void listMessages(int socketFileDescriptor) {
-    socketUtils::writeAll(socketFileDescriptor, "LIST\n");
+void readMessageList(int socketFileDescriptor) {
     string result = receiveResponse(socketFileDescriptor);
     if (result.starts_with(RESPONSE_OK)) {
         vector lines = stringUtils::split(result, "\n");
@@ -103,18 +104,14 @@ void listMessages(int socketFileDescriptor) {
     }
 }
 
+void listMessages(int socketFileDescriptor) {
+    socketUtils::writeAll(socketFileDescriptor, "LIST\n");
+    readMessageList(socketFileDescriptor);
+}
+
 void listSentMessages(int socketFileDescriptor) {
     socketUtils::writeAll(socketFileDescriptor, "LIST_SENT\n");
-    string result = receiveResponse(socketFileDescriptor);
-    if (result.starts_with(RESPONSE_OK)) {
-        vector lines = stringUtils::split(result, "\n");
-        cout << "Total count: " << lines.at(1) << "\nMessages: " << endl;
-        for (int i = 2; i < lines.size(); i++) {
-            cout << lines.at(i) << endl;
-        }
-    } else {
-        cout << "There was an error listing the messages." << endl;
-    }
+    readMessageList(socketFileDescriptor);
 }
 
 void readMessage(int socketFileDescriptor) {

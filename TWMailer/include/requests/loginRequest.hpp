@@ -14,13 +14,6 @@ class LoginRequest : public Request {
 private:
     bool disableLdap = false;
 
-public:
-    explicit LoginRequest(bool _disableLdap) : disableLdap(_disableLdap) {}
-
-    std::string getKeyword() override {
-        return "LOGIN";
-    }
-
     static bool hasValidStructure(std::vector<std::string> lines) {
         if (lines.size() != 3) {
             spdlog::error("LOGIN command has invalid amount of arguments!");
@@ -35,6 +28,14 @@ public:
         return true;
     }
 
+
+public:
+    explicit LoginRequest(bool _disableLdap) : disableLdap(_disableLdap) {}
+
+    std::string getKeyword() override {
+        return "LOGIN";
+    }
+
     bool isValid(std::string requestText) override {
         auto lines = stringUtils::split(requestText, "\n");
 
@@ -47,8 +48,7 @@ public:
     std::string handleRequest(const std::string &requestText, Session &session) const {
         auto lines = stringUtils::split(requestText, "\n");
 
-        if (BanRepository::instance().isBanned(session.getIp()))
-        {
+        if (BanRepository::instance().isBanned(session.getIp())) {
             spdlog::warn("Banned user with IP {} tried to login. Dropping connection", session.getIp());
             close(session.getSocket());
             pthread_exit(EXIT_SUCCESS);

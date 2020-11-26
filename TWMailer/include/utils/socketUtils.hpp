@@ -17,7 +17,7 @@ namespace socketUtils {
         int recvLen;
         do {
             recvLen = read(socketFileDescriptor, buffer, sizeof(buffer) - 1);
-            if (recvLen < 0) {
+            if (recvLen < 0) { // When the connection is closed we can just treat it like we received nothing
                 return "";
             }
             buffer[recvLen] = '\0';
@@ -29,7 +29,7 @@ namespace socketUtils {
         return wholeText;
     }
 
-    void writeAll(int socketFileDescriptor, const std::string& text, bool logging = false) {
+    void writeAll(int socketFileDescriptor, const std::string &text, bool logging = false) {
         if (send(socketFileDescriptor, text.c_str(), strlen(text.c_str()) + 1, MSG_NOSIGNAL) < 0 && logging) {
             spdlog::error("Could not write string {}!", text);
         }

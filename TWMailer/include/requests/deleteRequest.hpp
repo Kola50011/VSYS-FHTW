@@ -9,11 +9,7 @@
 #include "libraries/spdlog/spdlog.h"
 
 class DeleteRequest : public AuthenticatedRequest {
-public:
-    std::string getKeyword() override {
-        return "DEL";
-    }
-
+private:
     static bool hasValidStructure(std::vector<std::string> lines) {
         if (lines.size() < 2) {
             spdlog::error("DEL command has invalid amount of arguments!");
@@ -25,6 +21,11 @@ public:
             return false;
         }
         return true;
+    }
+
+public:
+    std::string getKeyword() override {
+        return "DEL";
     }
 
     bool isValid(std::string requestText) override {

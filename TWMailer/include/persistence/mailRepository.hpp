@@ -27,7 +27,7 @@ private:
 
     bool doEncryption = false;
     std::vector<unsigned char> key;
-    const unsigned char iv[16] = {
+    static constexpr unsigned char iv[16] = {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     };
@@ -38,12 +38,10 @@ private:
         plusaes::encrypt_cbc((unsigned char *) decrypted.data(), decrypted.size(), &key[0], key.size(), &iv,
                              &encrypted[0], encrypted.size(), true);
 
-        // Convert char array to savable string
-        std::string ret;
-        for (auto character : encrypted) {
-            ret += std::to_string(character) + " ";
-        }
-        return ret;
+        // Convert to savable string
+        std::ostringstream oss;
+        std::copy(encrypted.begin(), encrypted.end(), std::ostream_iterator<int>(oss, " "));
+        return oss.str();
     }
 
     std::string decrypt(const std::string &encryptedString) {
@@ -61,12 +59,7 @@ private:
         plusaes::decrypt_cbc(&encrypted[0], encrypted.size(), &key[0], key.size(), &iv, &decrypted[0], decrypted.size(),
                              &padded_size);
 
-        // Char array to string
-        std::string ret;
-        for (auto character : decrypted) {
-            ret += character;
-        }
-        return ret;
+        return std::string(decrypted.begin(), decrypted.end());
     }
 
     std::filesystem::path getMailPath(const std::string &id) {
@@ -90,12 +83,13 @@ private:
     }
 
     std::string saveMail(entities::Mail &mail) {
+        // We are using an UUID to prevent id clashes
         auto uuid = uuid::generate_uuid_v4();
         mail.setId(uuid);
 
         std::stringstream jsonStringStream;
-        nlohmann::json mailjson = mail;
-        jsonStringStream << std::setw(4) << mailjson << std::endl;
+        nlohmann::json mailJson = mail;
+        jsonStringStream << std::setw(4) << mailJson << std::endl;
 
         std::ofstream fileStream(getMailPath(uuid));
 
@@ -158,11 +152,15 @@ public:
             return ret;
         }
         for (const auto &entry : std::filesystem::directory_iterator(userPath)) {
-            if (entry.is_directory()) {
+            if (entry.is_directory()) { // Ignoring sent folder and other random folders in email directory
                 continue;
             }
-            auto mail = getMail(entry.path().stem());
-            ret.push_back(mail);
+            try {
+                auto mail = getMail(entry.path().stem());
+                ret.push_back(mail);
+            } catch (const FileNotFoundException& e) {
+                spdlog::error("Tried to access non existing email at: " + entry.path().string());
+            }
         }
 
         return ret;
@@ -176,11 +174,15 @@ public:
             return ret;
         }
         for (const auto &entry : std::filesystem::directory_iterator(userSentPath)) {
-            if (entry.is_directory()) {
+            if (entry.is_directory()) { // random folders in email directory
                 continue;
             }
-            auto mail = getMail(entry.path().stem());
-            ret.push_back(mail);
+            try {
+                auto mail = getMail(entry.path().stem());
+                ret.push_back(mail);
+            } catch (const FileNotFoundException& e) {
+                spdlog::error("Tried to access non existing email at: " + entry.path().string());
+            }
         }
 
         return ret;
@@ -227,7 +229,7 @@ public:
                 std::quick_exit(1);
             }
         }
-        spdlog::debug(fileText);
+        spdlog::debug("Read message: " + fileText);
 
         auto mailJson = nlohmann::json::parse(fileText);
         auto ret = mailJson.get<entities::Mail>();

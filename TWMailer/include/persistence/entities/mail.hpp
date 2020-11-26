@@ -16,6 +16,7 @@ namespace entities {
         std::string content;
 
     public:
+        // Needed for JSON encoding
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(Mail, id, sender, receivers, subject, content)
 
         Mail() = default;
@@ -49,6 +50,7 @@ namespace entities {
         std::string toString() {
             std::ostringstream concatReceivers;
             std::copy(receivers.begin(), receivers.end(), std::ostream_iterator<std::string>(concatReceivers, " "));
+
             return std::string(sender).append("\n").append(concatReceivers.str()).append("\n").append(subject).append(
                     "\n").append(content);
         }

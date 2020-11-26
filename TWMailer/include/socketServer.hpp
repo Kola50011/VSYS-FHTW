@@ -14,6 +14,7 @@
 #include "persistence/banRepository.hpp"
 
 #define BUFFER_SIZE 1024
+#define CONNECTION_QUEUE_SIZE 10
 
 class SocketServer {
 private:
@@ -38,14 +39,14 @@ private:
             exit(EXIT_FAILURE);
         }
 
-        if (listen(socketFileDescriptor, 10) < 0) {
+        if (listen(socketFileDescriptor, CONNECTION_QUEUE_SIZE) < 0) {
             spdlog::error("Could not listen to socket!");
             exit(EXIT_FAILURE);
         }
     }
 
-    static void handleClient(int clientSocketFileDescriptor, RequestProcessor &requestProcessor, const std::string& ip)
-    {
+    static void
+    handleClient(int clientSocketFileDescriptor, RequestProcessor &requestProcessor, const std::string &ip) {
         spdlog::info("Incoming connection with ID {} and IP {}", clientSocketFileDescriptor, ip);
 
         if (BanRepository::instance().isBanned(ip)) {
@@ -86,7 +87,7 @@ public:
             char ip[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &ipAddr, ip, INET_ADDRSTRLEN);
 
-            // detach automatically releases all ressources once the thread is finished
+            // detach automatically releases all resources once the thread is finished
             std::thread(SocketServer::handleClient, clientSocketDescriptor, std::ref(requestProcessor), ip).detach();
         }
         running = true;
